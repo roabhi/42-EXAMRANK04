@@ -6,7 +6,7 @@
 /*   By: rabril-h <rabril-h@student.42barcelona.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/19 21:02:06 by rabril-h          #+#    #+#             */
-/*   Updated: 2023/08/20 20:35:22 by rabril-h         ###   ########.fr       */
+/*   Updated: 2023/08/20 20:54:50 by rabril-h         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,53 @@ int	msh_cd(char **argv, int i)
 			msh_error(argv[1]), msh_error("\n"));
 	return (0);
 }
+
+/**
+ * @brief 
+ * 
+ * This function takes care of the execution of comands in this case basically pipes (\) and semicolons (;)
+ * 
+ * In order to pipe anything we would need the following vars
+ * 
+ * 1) Two file descriptors so we can have a child process
+ * 2) The status we will be storing (this will return either 0 or 1)
+ * 3) A reference for the process / pid
+ * 4) A custom boolean under the form of int in which we determine if the argument has a pipe
+ * 
+ * We determine that an argument has a pipe when there is argument and the argument is a pipe with 
+ * ? has_pipe = argv[i] && !strcmp(argv[i], "|");
+ * 
+ * !BUT
+ * 
+ * If we have a pipe BUT we cannot access de file descriptor we throw an error as stated int he subject in a system call
+ * 
+ * ? if (has_pipe && pipe(fd) == -1)
+ * ? return (msh_error("error: fatal\n"));
+ * 
+ * If there is no error then we proceed with creating the actual process with 
+ * ? pid = fork();
+ * 
+ * Then we check for error in the process. If so we reverse i to the first argument in the token to 0
+ * Then we check if we are dealing with a pipe and we have errors splitting child processes to their respective
+ * file descriptors
+ * 
+ * If there are no errors we actually try to execute the comand BUT as stated in the subject we just deal with regault pipes and semicolons so anyways we fo for execve which takes 3 params (the actual "token" we are dealing with, the argument we are dealing with and the enviroment variables)
+ * 
+ * Then we return the error of not beign able to execute the command.
+ * 
+ * If we have a succesfull process then we just wait for the execution of the child process with 
+ * ? waitpid(pid, &status, 0);
+ * 
+ * Then we check again for errors in the execution but this time with the other file descriptor.
+ * 
+ * Finally we return 0 or 1 based on whether or not the child process has ended its process and the status returned by that process with
+ * ? return (WIFEXITED(status) && WEXITSTATUS(status));
+ * 
+ * @param argv 
+ * @param envp 
+ * @param i 
+ * @return int 
+ */
 
 int msh_exec(char **argv, char **envp, int i)
 {
