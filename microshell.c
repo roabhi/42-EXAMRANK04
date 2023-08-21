@@ -6,7 +6,7 @@
 /*   By: rabril-h <rabril-h@student.42barcelona.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/19 21:02:06 by rabril-h          #+#    #+#             */
-/*   Updated: 2023/08/20 20:54:50 by rabril-h         ###   ########.fr       */
+/*   Updated: 2023/08/21 21:39:22 by rabril-h         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,28 +127,28 @@ int msh_exec(char **argv, char **envp, int i)
 	int	pid;
 	int	has_pipe;
 
-	has_pipe = argv[i] && !strcmp(argv[i], "|");
-	if (has_pipe && pipe(fd) == -1)
-		return (msh_error("error: fatal\n"));
-	pid = fork();
-	if (!pid)
+	has_pipe = argv[i] && !strcmp(argv[i], "|"); // ? This acts as boolean either true or false
+	if (has_pipe && pipe(fd) == -1) // ? We check errors if the conversion from our int fd fails
+		return (msh_error("error: fatal\n")); 
+	pid = fork(); // ? We do the actual fork here
+	if (!pid) // ? We check if pid == 0 meaning is the child process. THIS IS NOT AN ERROR
 	{
-		argv[i] = 0;
+		argv[i] = 0; // ? Close the arg with NULL before sending it to execve so we take just the command we need
 		if (has_pipe && (dup2(fd[1], 1) == -1
 				|| close(fd[0]) == -1
-				|| close(fd[1]) == -1))
+				|| close(fd[1]) == -1)) // ? Check errors if the conversion cannot be done or if we cannot close any fd
 			return (msh_error("error: fatal\n"));
-		execve(*argv, argv, envp);
+		execve(*argv, argv, envp); 
 		return (msh_error("error: cannot execute "),
 			msh_error(*argv),
-			msh_error("\n")); 
+			msh_error("\n")); // ? execve kills the process so if we got here something bad happened
 	}
-	waitpid(pid, &status, 0);
+	waitpid(pid, &status, 0); // ? The father process was waiting up until this point
 	if (has_pipe && (dup2(fd[0], 0) == -1
 			|| close(fd[0]) == -1
 			|| close(fd[1]) == -1))
-		return (msh_error("error: fatal\n"));
-	return (WIFEXITED(status) && WEXITSTATUS(status));
+		return (msh_error("error: fatal\n")); // ? Check again for errors
+	return (WIFEXITED(status) && WEXITSTATUS(status)); // ? return the status of the child process set by execve
 }
 
 /**
