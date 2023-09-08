@@ -6,17 +6,16 @@
 /*   By: rabril-h <rabril-h@student.42barcelona.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/19 21:02:06 by rabril-h          #+#    #+#             */
-/*   Updated: 2023/09/04 22:02:13 by rabril-h         ###   ########.fr       */
+/*   Updated: 2023/09/08 20:57:27 by rabril-h         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+// #include <stdlib.h>
+// #include <stdio.h>
 
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 
 /**
  * @brief simple function to count char. We are not using
@@ -104,14 +103,16 @@ int	main(int argc, char *argv[], char *env[])
 			i++; // ? increment the counter as long as there is a char and that char is NOT ; AND is NOT | (strcmp returns 1 when there is no match)
 		if (!strcmp(argv[0], "cd")) // ? if the first argument (command) for the stirng chain is cd
 		{
+			// printf("i es %d", i);
 			if (i != 2) // ? more or less than 2 arguments for cd is invalid, hence print error
 				msh_error("error: cd: bad arguments\n");
-			else if (chdir(argv[1]) == -1) // ? If we try to change the directory and there is an error, print error (the dir does not actually change in microshell. Do not freak out)
+			else if (chdir(argv[1]) == -1) // ? If we try to change the directory and there is an error, print error (the dir does not actually change in microshell. Do not freak out it does before exiting the program)
 			{
 				msh_error("error: cd: cannot change directory to ");
 				msh_error(argv[1]);
 				msh_error("\n");
 			}
+			// system("pwd");
 		}
 		else if (i != 0 && (argv[i] == NULL || strcmp(argv[i], ";") == 0)) //exec in stdout
 		{
